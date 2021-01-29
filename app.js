@@ -52,13 +52,18 @@ window.parent = ()=> {
                 this.data.form.items = [
                     v4(),
                     v4(),
-                    v4(),
                 ]
             })
         },
 
         add() {
-            this.data.form.items = this.data.form.items.concat([v4()])
+            const items = []
+
+            for (let i = 0; i < 5; i++) {
+                items.push(v4())
+            }
+
+            this.data.form.items = items
         }
     }
 }

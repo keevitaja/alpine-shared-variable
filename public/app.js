@@ -2023,11 +2023,17 @@ window.parent = function () {
       var _this = this;
 
       share(this, 'data', 'somethingUnique', function (that) {
-        _this.data.form.items = [(0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)(), (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)(), (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)()];
+        _this.data.form.items = [(0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)(), (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)()];
       });
     },
     add: function add() {
-      this.data.form.items = this.data.form.items.concat([(0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)()]);
+      var items = [];
+
+      for (var i = 0; i < 5; i++) {
+        items.push((0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)());
+      }
+
+      this.data.form.items = items;
     }
   };
 };
