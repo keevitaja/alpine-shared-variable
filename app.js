@@ -21,7 +21,7 @@ const share = (that, parent, event, set = null)=> {
         key = parent + '.' + key
 
         emitter.on(event, (key, value, src)=> {
-            if (src !== uid) {
+            if (src !== uid && op.has(that, key)) {
                 op.set(that, key, value)
             }
         })
@@ -32,7 +32,7 @@ const share = (that, parent, event, set = null)=> {
     }
 
     if (set !== null) {
-        that.$nextTick(()=> setTimeout(()=> set(that)))
+        that.$nextTick(()=> set(that))
     }
 }
 
@@ -49,7 +49,11 @@ window.parent = ()=> {
 
         init() {
             share(this, 'data', 'somethingUnique', that=> {
-                that.add()
+                this.data.form.items = [
+                    v4(),
+                    v4(),
+                    v4(),
+                ]
             })
         },
 

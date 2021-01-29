@@ -1990,7 +1990,7 @@ var share = function share(that, parent, event) {
     var event = name + '.' + key;
     key = parent + '.' + key;
     emitter.on(event, function (key, value, src) {
-      if (src !== uid) {
+      if (src !== uid && object_path__WEBPACK_IMPORTED_MODULE_2___default().has(that, key)) {
         object_path__WEBPACK_IMPORTED_MODULE_2___default().set(that, key, value);
       }
     });
@@ -2005,9 +2005,7 @@ var share = function share(that, parent, event) {
 
   if (set !== null) {
     that.$nextTick(function () {
-      return setTimeout(function () {
-        return set(that);
-      });
+      return set(that);
     });
   }
 };
@@ -2022,8 +2020,10 @@ window.parent = function () {
       test: null
     },
     init: function init() {
+      var _this = this;
+
       share(this, 'data', 'somethingUnique', function (that) {
-        that.add();
+        _this.data.form.items = [(0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)(), (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)(), (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)()];
       });
     },
     add: function add() {
