@@ -2120,24 +2120,18 @@ var _default = /*#__PURE__*/function () {
   _createClass(_default, [{
     key: "emit",
     value: function emit(name) {
-      for (var _len = arguments.length, payload = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        payload[_key - 1] = arguments[_key];
-      }
-
       if (this.listeners[name] !== undefined) {
+        for (var _len = arguments.length, payload = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          payload[_key - 1] = arguments[_key];
+        }
+
         var _iterator = _createForOfIteratorHelper(this.listeners[name]),
             _step;
 
         try {
-          var _loop = function _loop() {
-            var event = _step.value;
-            setTimeout(function () {
-              return event.apply(void 0, payload);
-            });
-          };
-
           for (_iterator.s(); !(_step = _iterator.n()).done;) {
-            _loop();
+            var event = _step.value;
+            event.apply(void 0, payload);
           }
         } catch (err) {
           _iterator.e(err);

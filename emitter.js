@@ -6,7 +6,7 @@ export default class {
     emit(name, ...payload) {
         if (this.listeners[name] !== undefined) {
             for (const event of this.listeners[name]) {
-                setTimeout(()=> event(...payload))
+                event(...payload)
             }
         }
     }
