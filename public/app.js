@@ -1966,38 +1966,68 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var process__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(process__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var object_path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! object-path */ "./node_modules/object-path/index.js");
 /* harmony import */ var object_path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(object_path__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var uuid__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-browser/v4.js");
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./emitter */ "./emitter.js");
+/* harmony import */ var uuid__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-browser/v4.js");
+/* harmony import */ var flat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! flat */ "./node_modules/flat/index.js");
+/* harmony import */ var flat__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(flat__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./emitter */ "./emitter.js");
 
 
 
 
 
-var emitter = new _emitter__WEBPACK_IMPORTED_MODULE_3__.default();
 
-var share = function share(that, key, event) {
-  var name = 'sharedEvents.' + event + '.' + key;
-  var uid = (0,uuid__WEBPACK_IMPORTED_MODULE_4__.default)();
-  var emitting = false;
-  emitter.on(name, function (key, value, src) {
-    if (src !== uid) {
-      object_path__WEBPACK_IMPORTED_MODULE_2___default().set(that, key, value);
-    }
-  });
-  that.$watch(key, function (value) {
-    emitter.emit(name, key, value, uid);
-  });
+var emitter = new _emitter__WEBPACK_IMPORTED_MODULE_4__.default();
+
+var share = function share(that, parent, event) {
+  var set = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  var keys = Object.keys(flat__WEBPACK_IMPORTED_MODULE_3___default()(JSON.parse(JSON.stringify(that[parent]))));
+  var name = 'sharedEvents.' + event;
+  var uid = (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)();
+  console.log(keys);
+
+  var _loop = function _loop() {
+    var key = _keys[_i];
+    var event = name + '.' + key;
+    key = parent + '.' + key;
+    emitter.on(event, function (key, value, src) {
+      if (src !== uid) {
+        object_path__WEBPACK_IMPORTED_MODULE_2___default().set(that, key, value);
+      }
+    });
+    that.$watch(key, function (value) {
+      emitter.emit(event, key, value, uid);
+    });
+  };
+
+  for (var _i = 0, _keys = keys; _i < _keys.length; _i++) {
+    _loop();
+  }
+
+  if (set !== null) {
+    that.$nextTick(function () {
+      return setTimeout(function () {
+        return set(that);
+      });
+    });
+  }
 };
 
 window.parent = function () {
   return {
     data: {
       form: {
-        name: null
-      }
+        name: null,
+        items: []
+      },
+      test: null
     },
     init: function init() {
-      share(this, 'data.form.name', 'somethingUnique');
+      share(this, 'data', 'somethingUnique', function (that) {
+        that.add();
+      });
+    },
+    add: function add() {
+      this.data.form.items = this.data.form.items.concat([(0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)()]);
     }
   };
 };
@@ -2006,11 +2036,13 @@ window.child = function () {
   return {
     data: {
       form: {
-        name: null
-      }
+        name: null,
+        items: []
+      },
+      test: null
     },
     init: function init() {
-      share(this, 'data.form.name', 'somethingUnique');
+      share(this, 'data', 'somethingUnique');
     }
   };
 };
@@ -2019,11 +2051,16 @@ window.sibling = function () {
   return {
     data: {
       form: {
-        name: null
-      }
+        name: null,
+        items: []
+      },
+      test: null
     },
     init: function init() {
-      share(this, 'data.form.name', 'somethingUnique');
+      share(this, 'data', 'somethingUnique');
+    },
+    add: function add() {
+      this.data.form.items = this.data.form.items.concat([(0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)()]);
     }
   };
 };
@@ -2103,6 +2140,174 @@ var _default = /*#__PURE__*/function () {
   return _default;
 }();
 
+
+
+/***/ }),
+
+/***/ "./node_modules/flat/index.js":
+/*!************************************!*\
+  !*** ./node_modules/flat/index.js ***!
+  \************************************/
+/***/ ((module) => {
+
+module.exports = flatten
+flatten.flatten = flatten
+flatten.unflatten = unflatten
+
+function isBuffer (obj) {
+  return obj &&
+    obj.constructor &&
+    (typeof obj.constructor.isBuffer === 'function') &&
+    obj.constructor.isBuffer(obj)
+}
+
+function keyIdentity (key) {
+  return key
+}
+
+function flatten (target, opts) {
+  opts = opts || {}
+
+  const delimiter = opts.delimiter || '.'
+  const maxDepth = opts.maxDepth
+  const transformKey = opts.transformKey || keyIdentity
+  const output = {}
+
+  function step (object, prev, currentDepth) {
+    currentDepth = currentDepth || 1
+    Object.keys(object).forEach(function (key) {
+      const value = object[key]
+      const isarray = opts.safe && Array.isArray(value)
+      const type = Object.prototype.toString.call(value)
+      const isbuffer = isBuffer(value)
+      const isobject = (
+        type === '[object Object]' ||
+        type === '[object Array]'
+      )
+
+      const newKey = prev
+        ? prev + delimiter + transformKey(key)
+        : transformKey(key)
+
+      if (!isarray && !isbuffer && isobject && Object.keys(value).length &&
+        (!opts.maxDepth || currentDepth < maxDepth)) {
+        return step(value, newKey, currentDepth + 1)
+      }
+
+      output[newKey] = value
+    })
+  }
+
+  step(target)
+
+  return output
+}
+
+function unflatten (target, opts) {
+  opts = opts || {}
+
+  const delimiter = opts.delimiter || '.'
+  const overwrite = opts.overwrite || false
+  const transformKey = opts.transformKey || keyIdentity
+  const result = {}
+
+  const isbuffer = isBuffer(target)
+  if (isbuffer || Object.prototype.toString.call(target) !== '[object Object]') {
+    return target
+  }
+
+  // safely ensure that the key is
+  // an integer.
+  function getkey (key) {
+    const parsedKey = Number(key)
+
+    return (
+      isNaN(parsedKey) ||
+      key.indexOf('.') !== -1 ||
+      opts.object
+    ) ? key
+      : parsedKey
+  }
+
+  function addKeys (keyPrefix, recipient, target) {
+    return Object.keys(target).reduce(function (result, key) {
+      result[keyPrefix + delimiter + key] = target[key]
+
+      return result
+    }, recipient)
+  }
+
+  function isEmpty (val) {
+    const type = Object.prototype.toString.call(val)
+    const isArray = type === '[object Array]'
+    const isObject = type === '[object Object]'
+
+    if (!val) {
+      return true
+    } else if (isArray) {
+      return !val.length
+    } else if (isObject) {
+      return !Object.keys(val).length
+    }
+  }
+
+  target = Object.keys(target).reduce(function (result, key) {
+    const type = Object.prototype.toString.call(target[key])
+    const isObject = (type === '[object Object]' || type === '[object Array]')
+    if (!isObject || isEmpty(target[key])) {
+      result[key] = target[key]
+      return result
+    } else {
+      return addKeys(
+        key,
+        result,
+        flatten(target[key], opts)
+      )
+    }
+  }, {})
+
+  Object.keys(target).forEach(function (key) {
+    const split = key.split(delimiter).map(transformKey)
+    let key1 = getkey(split.shift())
+    let key2 = getkey(split[0])
+    let recipient = result
+
+    while (key2 !== undefined) {
+      if (key1 === '__proto__') {
+        return
+      }
+
+      const type = Object.prototype.toString.call(recipient[key1])
+      const isobject = (
+        type === '[object Object]' ||
+        type === '[object Array]'
+      )
+
+      // do not write over falsey, non-undefined values if overwrite is false
+      if (!overwrite && !isobject && typeof recipient[key1] !== 'undefined') {
+        return
+      }
+
+      if ((overwrite && !isobject) || (!overwrite && recipient[key1] == null)) {
+        recipient[key1] = (
+          typeof key2 === 'number' &&
+          !opts.object ? [] : {}
+        )
+      }
+
+      recipient = recipient[key1]
+      if (split.length > 0) {
+        key1 = getkey(split.shift())
+        key2 = getkey(split[0])
+      }
+    }
+
+    // unflatten again for 'messy objects'
+    recipient[key1] = unflatten(target[key], opts)
+  })
+
+  return result
+}
 
 
 /***/ }),
