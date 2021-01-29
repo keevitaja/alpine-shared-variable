@@ -8,21 +8,27 @@ import Emitter from './emitter'
 
 const emitter = new Emitter()
 
-const share = (that, parent, event, set = null)=> {
-    const keys = Object.keys(flat(JSON.parse(JSON.stringify(that[parent]))))
+const share = (that, master, event, set = null)=> {
+    const keys = Object.keys(flat(JSON.parse(JSON.stringify(that[master]))))
     const name = 'sharedEvents.' + event
     const uid = v4()
 
+    keys.push(master)
+
     console.log(keys)
 
-    for (const key of keys) {
-        const event = name + '.' + key
+    for (const itemKey of keys) {
+        const event = name + '.' + itemKey
 
-        key = parent + '.' + key
+        const key = master + '.' + itemKey
 
         emitter.on(event, (key, value, src)=> {
-            if (src !== uid && op.has(that, key)) {
-                op.set(that, key, value)
+            if (src !== uid) {
+                if (master === itemKey) {
+                    that[master] = value
+                } else {
+                    op.set(that, key, value)
+                }
             }
         })
 
@@ -63,7 +69,18 @@ window.parent = ()=> {
                 items.push(v4())
             }
 
-            this.data.form.items = items
+            this.data.form.items = this.data.form.items.concat(items)
+        },
+
+        reset() {
+            this.data = {
+                form: {
+                    name: 'something',
+                    items: [1, 2, 3],
+                },
+
+                test: 'testing',
+            }
         }
     }
 }

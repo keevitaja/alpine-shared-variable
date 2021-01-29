@@ -1978,20 +1978,25 @@ __webpack_require__.r(__webpack_exports__);
 
 var emitter = new _emitter__WEBPACK_IMPORTED_MODULE_4__.default();
 
-var share = function share(that, parent, event) {
+var share = function share(that, master, event) {
   var set = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-  var keys = Object.keys(flat__WEBPACK_IMPORTED_MODULE_3___default()(JSON.parse(JSON.stringify(that[parent]))));
+  var keys = Object.keys(flat__WEBPACK_IMPORTED_MODULE_3___default()(JSON.parse(JSON.stringify(that[master]))));
   var name = 'sharedEvents.' + event;
   var uid = (0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)();
+  keys.push(master);
   console.log(keys);
 
   var _loop = function _loop() {
-    var key = _keys[_i];
-    var event = name + '.' + key;
-    key = parent + '.' + key;
+    var itemKey = _keys[_i];
+    var event = name + '.' + itemKey;
+    var key = master + '.' + itemKey;
     emitter.on(event, function (key, value, src) {
-      if (src !== uid && object_path__WEBPACK_IMPORTED_MODULE_2___default().has(that, key)) {
-        object_path__WEBPACK_IMPORTED_MODULE_2___default().set(that, key, value);
+      if (src !== uid) {
+        if (master === itemKey) {
+          that[master] = value;
+        } else {
+          object_path__WEBPACK_IMPORTED_MODULE_2___default().set(that, key, value);
+        }
       }
     });
     that.$watch(key, function (value) {
@@ -2033,7 +2038,16 @@ window.parent = function () {
         items.push((0,uuid__WEBPACK_IMPORTED_MODULE_5__.default)());
       }
 
-      this.data.form.items = items;
+      this.data.form.items = this.data.form.items.concat(items);
+    },
+    reset: function reset() {
+      this.data = {
+        form: {
+          name: 'something',
+          items: [1, 2, 3]
+        },
+        test: 'testing'
+      };
     }
   };
 };
